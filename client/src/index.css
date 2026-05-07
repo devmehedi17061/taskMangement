@@ -1,0 +1,130 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tiptap rich-text editor content styling */
+.tiptap p {
+  margin: 0 0 0.5rem 0;
+}
+.tiptap p:last-child {
+  margin-bottom: 0;
+}
+.tiptap h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0.75rem 0 0.5rem;
+}
+.tiptap h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0.6rem 0 0.4rem;
+}
+.tiptap h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0.5rem 0 0.35rem;
+}
+.tiptap ul, .tiptap ol {
+  padding-left: 1.25rem;
+  margin: 0.25rem 0 0.5rem;
+}
+.tiptap ul {
+  list-style: disc;
+}
+.tiptap ol {
+  list-style: decimal;
+}
+.tiptap li {
+  margin: 0.15rem 0;
+}
+.tiptap li > p {
+  margin: 0;
+}
+.tiptap blockquote {
+  border-left: 3px solid #cbd5e1;
+  padding-left: 0.75rem;
+  color: #475569;
+  margin: 0.5rem 0;
+}
+.tiptap code {
+  background: #f1f5f9;
+  padding: 0 0.25rem;
+  border-radius: 0.25rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.85em;
+}
+.tiptap pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  overflow-x: auto;
+  font-size: 0.85em;
+  margin: 0.5rem 0;
+}
+.tiptap pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+.tiptap a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.tiptap strong {
+  font-weight: 600;
+}
+.tiptap hr {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 0.75rem 0;
+}
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: #94a3b8;
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Tiptap task-list (checkbox) styling */
+.tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+  margin: 0.25rem 0 0.5rem;
+}
+.tiptap ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.15rem 0;
+}
+.tiptap ul[data-type="taskList"] li > label {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+  user-select: none;
+}
+.tiptap ul[data-type="taskList"] li > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  cursor: pointer;
+}
+.tiptap ul[data-type="taskList"] li[data-checked="true"] > div > p {
+  text-decoration: line-through;
+  color: #64748b;
+}

@@ -1,0 +1,13 @@
+node_modules/
+.env
+.env.local
+*.log
+dist/
+.vite/
+.DS_Store
+
+# Server runtime artifacts
+server/data/store.json
+server/data/*.json
+!server/data/.gitkeep
+server/credentials/
