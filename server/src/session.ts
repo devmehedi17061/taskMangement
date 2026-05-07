@@ -36,7 +36,7 @@ export async function issueSession(res: Response, userId: string): Promise<void>
   res.cookie(COOKIE_NAME, sign(sid), {
     httpOnly: true,
     sameSite: 'lax',
-    secure: false, // localhost; flip to true behind HTTPS in production
+    secure: process.env.NODE_ENV === 'production' || !!process.env.VERCEL,
     path: '/',
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });

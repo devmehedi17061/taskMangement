@@ -9,18 +9,38 @@ const SCOPES = [
 
 let cached: GoogleAuth | null = null;
 
-function keyFilePath(): string {
+function inlineCredentials(): Record<string, unknown> | null {
+  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_JSON;
+  if (!raw || !raw.trim()) return null;
+  try {
+    return JSON.parse(raw) as Record<string, unknown>;
+  } catch (err) {
+    throw new Error(
+      `GOOGLE_SERVICE_ACCOUNT_KEY_JSON is set but is not valid JSON: ${(err as Error).message}`,
+    );
+  }
+}
+
+function keyFilePath(): string | null {
   const rel = process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE;
-  if (!rel) throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY_FILE is not set');
+  if (!rel) return null;
   return path.isAbsolute(rel) ? rel : path.resolve(process.cwd(), rel);
 }
 
 export function getServiceAccountAuth(): GoogleAuth {
   if (cached) return cached;
-  cached = new GoogleAuth({
-    keyFile: keyFilePath(),
-    scopes: SCOPES,
-  });
+  const credentials = inlineCredentials();
+  if (credentials) {
+    cached = new GoogleAuth({ credentials, scopes: SCOPES });
+    return cached;
+  }
+  const file = keyFilePath();
+  if (!file) {
+    throw new Error(
+      'No service-account credentials found — set GOOGLE_SERVICE_ACCOUNT_KEY_JSON (full JSON, used on Vercel) or GOOGLE_SERVICE_ACCOUNT_KEY_FILE (path, used locally).',
+    );
+  }
+  cached = new GoogleAuth({ keyFile: file, scopes: SCOPES });
   return cached;
 }
 

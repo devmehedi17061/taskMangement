@@ -211,3 +211,52 @@ client/
 - Add CSRF protection on state-changing routes (we rely on `sameSite=lax` cookies + same-site backend for now).
 - For private notes docs, swap the iframe `/preview` for a server-side `documents.get` render to HTML — keeps the doc anyone-with-link off.
 - Move to a Workspace **shared drive** so the 15 GB personal-Drive cap doesn't apply.
+
+---
+
+## 9. Deploying to Vercel
+
+Both the React client and the Express API run on a single Vercel project: the client is built into `client/dist` (served as static), and the entire Express app is wrapped as one Node serverless function at `api/[...path].ts`. Configuration lives in `vercel.json`.
+
+### 9.1 One-time platform setup
+
+1. **Provision a Vercel KV (or Upstash Redis) store** on the Vercel project. Pick *Storage → Create → KV*. Vercel auto-injects `KV_REST_API_URL` and `KV_REST_API_TOKEN` into the deployment environment. These replace `server/data/store.json` for sessions, the install record, and owner OAuth tokens — required because serverless functions don't have a persistent filesystem.
+2. **Update the Google OAuth redirect URI** (only if you use `/api/auth/google`). In Google Cloud Console → *Credentials*, add `https://<your-vercel-domain>/api/auth/callback` to *Authorized redirect URIs*.
+
+### 9.2 Required Vercel env vars
+
+| Variable | Notes |
+|---|---|
+| `SESSION_SECRET` | Random 32-byte hex. Generate with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. |
+| `GOOGLE_SERVICE_ACCOUNT_KEY_JSON` | Paste the **full** service-account JSON file contents (one line, with `\n` inside `private_key`). Replaces the file path used locally. |
+| `APP_ROOT_FOLDER_ID` | Drive folder id (or empty to auto-provision on first request). |
+| `USERS_SHEET_ID` | Sheet id (or empty to auto-provision). |
+| `PROJECTS_SHEET_ID` | Sheet id (or empty to auto-provision). |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | Auto-injected by the KV integration. Don't set manually. |
+| `CLIENT_ORIGIN` | **Leave unset** on Vercel — client and API share an origin, so CORS reflection is fine. Only set this if you front the API with a different domain. |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | Only needed if you use the owner-OAuth flow. |
+
+`PORT` is ignored on Vercel — the platform picks the port for you. `GOOGLE_SERVICE_ACCOUNT_KEY_FILE` is ignored when `GOOGLE_SERVICE_ACCOUNT_KEY_JSON` is set.
+
+### 9.3 Deploy
+
+From the repo root:
+
+```bash
+npm i -g vercel       # one-time
+vercel link           # link to your existing task-mangement-phi project
+vercel env pull       # optional — pulls Vercel env vars into .env.local
+vercel --prod         # deploy to production
+```
+
+Or push to the linked Git branch if Git deploys are enabled.
+
+### 9.4 First-request bootstrap
+
+The serverless function lazily runs the same `bootstrapInstall` step the local server runs at startup. The first request after a cold start (e.g. `GET /api/health`) may take a few extra seconds while the install creates Drive resources and writes the install record into KV. Subsequent requests reuse the record.
+
+### 9.5 Known limitations
+
+- **Cold start** of the function is slower than a long-running Node server (Google libs are heavy). Consider hitting `/api/health` after a deploy to warm the function.
+- **`googleapis`** ships a large bundle. Vercel's 250 MB unzipped function limit is comfortable today, but if it grows, switch to the per-API package (`@googleapis/drive`, `@googleapis/sheets`, `@googleapis/docs`).
+- **No file uploads to local disk** — the function fs is read-only outside `/tmp`. Today's code doesn't need it; flag this if you add file storage later.

@@ -5,9 +5,9 @@ import { bootstrapInstall } from './services/installService.js';
 const port = Number(process.env.PORT) || 4000;
 
 async function bootstrap(): Promise<void> {
-  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE) {
+  if (!process.env.GOOGLE_SERVICE_ACCOUNT_KEY_FILE && !process.env.GOOGLE_SERVICE_ACCOUNT_KEY_JSON) {
     console.error(
-      '[bootstrap] GOOGLE_SERVICE_ACCOUNT_KEY_FILE is not set — server cannot reach Google APIs.',
+      '[bootstrap] No service-account credentials set — server cannot reach Google APIs. Set GOOGLE_SERVICE_ACCOUNT_KEY_JSON (Vercel) or GOOGLE_SERVICE_ACCOUNT_KEY_FILE (local).',
     );
     return;
   }
