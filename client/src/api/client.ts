@@ -15,11 +15,30 @@ export class ApiError extends Error {
   }
 }
 
+function extractErrorMessage(raw: unknown, fallback: string): string {
+  if (typeof raw === 'string' && raw.trim()) return raw;
+  if (raw && typeof raw === 'object') {
+    const obj = raw as Record<string, unknown>;
+    if (typeof obj.message === 'string' && obj.message.trim()) return obj.message;
+    if (typeof obj.error === 'string' && obj.error.trim()) return obj.error;
+    if (typeof obj.code === 'string' && obj.code.trim()) return obj.code;
+  }
+  return fallback;
+}
+
 apiClient.interceptors.response.use(
   (r) => r,
-  (err: AxiosError<{ error?: string }>) => {
+  (err: AxiosError<{ error?: unknown; message?: unknown }>) => {
     const status = err.response?.status ?? 0;
-    const message = err.response?.data?.error || err.message || 'Request failed';
+    const data = err.response?.data;
+    const fromErrorField = data && typeof data === 'object' ? (data as { error?: unknown }).error : undefined;
+    const fromMessageField = data && typeof data === 'object' ? (data as { message?: unknown }).message : undefined;
+    const message =
+      extractErrorMessage(fromErrorField, '') ||
+      extractErrorMessage(fromMessageField, '') ||
+      extractErrorMessage(data, '') ||
+      err.message ||
+      'Request failed';
     return Promise.reject(new ApiError(status, message));
   },
 );
