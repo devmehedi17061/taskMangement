@@ -216,7 +216,7 @@ client/
 
 ## 9. Deploying to Vercel
 
-Both the React client and the Express API run on a single Vercel project: the client is built into `client/dist` (served as static), and the entire Express app is wrapped as one Node serverless function at `api/[...path].ts`. Configuration lives in `vercel.json`.
+Both the React client and the Express API run on a single Vercel project: the client is built into `client/dist` (served as static), and the entire Express app is wrapped as one Node serverless function at `api/index.ts`. A `/api/(.*)` rewrite in `vercel.json` forwards every API path to that single function so Express's mounted routers do the actual matching.
 
 ### 9.1 One-time platform setup
 
